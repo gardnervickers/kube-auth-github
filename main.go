@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -82,9 +81,5 @@ func Authenticate(c *gin.Context) {
 		}
 	}
 
-	var b []byte
-	b, err = json.Marshal(tokenReview)
-	fmt.Println(string(b))
-
-	c.Status(400)
+	c.JSON(200, tokenReview)
 }
