@@ -28,7 +28,7 @@ type TokenReviewStatusUser struct {
 type TokenReview struct {
 	ApiVersion string             `json:"apiVersion"`
 	Kind       string             `json:"kind"`
-	Spec       *TokenReviewSpec   `json:"spec"`
+	Spec       *TokenReviewSpec   `json:"spec,omitempty"`
 	Status     *TokenReviewStatus `json:"status"`
 }
 
@@ -66,6 +66,7 @@ func Authenticate(c *gin.Context) {
 	tokenReview.Status.User.Username = *user.Login
 	tokenReview.Status.User.Uid = fmt.Sprintf("%d", *user.ID)
 
+	status := 403
 	for _, team := range teams {
 		isMember := false
 		isMember, res, err = client.Organizations.IsTeamMember(*team.ID, tokenReview.Status.User.Username)
@@ -75,11 +76,12 @@ func Authenticate(c *gin.Context) {
 		if isMember {
 			tokenReview.Status.User.Groups = append(tokenReview.Status.User.Groups, *team.Name)
 			if *team.Name == os.Getenv("GITHUB_TEAM") {
+				status = 200
 				tokenReview.Spec = nil
 				tokenReview.Status.Authenticated = true
 			}
 		}
 	}
 
-	c.JSON(200, tokenReview)
+	c.JSON(status, tokenReview)
 }
