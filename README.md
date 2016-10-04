@@ -22,7 +22,7 @@ ENV Var | Description | Default
 The user should [create a personal access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use) with the `org:read` scope. The user should then use the following command to setup kubectl.
 
 ```
-kubectl config set-credentials [github-username] --auth-provider=token --token=[access-token]
+kubectl config set-credentials [github-username] --token=[access-token]
 ```
 
 ## Contributing
