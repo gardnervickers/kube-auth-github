@@ -20,4 +20,4 @@ ENV Var | Description | Default
 
 ### Contributing
 
-See [CONTRIBUTING](CONTRIBUTING) for details.
+See [CONTRIBUTING](CONTRIBUTING.md) for details.
