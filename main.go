@@ -55,6 +55,7 @@ func Authenticate(c *gin.Context) {
 		c.Status(res.StatusCode)
 	}
 
+	*tokenReview.Status = TokenReviewStatus{}
 	*tokenReview.Status.Authenticated = false
 
 	var user *github.User
@@ -62,6 +63,7 @@ func Authenticate(c *gin.Context) {
 	if err != nil {
 		c.Status(res.StatusCode)
 	}
+	*tokenReview.Status.User = TokenReviewStatusUser{}
 	*tokenReview.Status.User.Username = *user.Login
 	*tokenReview.Status.User.Uid = fmt.Sprintf("%d", user.ID)
 
