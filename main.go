@@ -82,7 +82,9 @@ func Authenticate(c *gin.Context) {
 		}
 	}
 
-	fmt.Println(json.Marshal(tokenReview))
+	var b []byte
+	b, err = json.Marshal(tokenReview)
+	fmt.Println(string(b))
 
 	c.Status(400)
 }
