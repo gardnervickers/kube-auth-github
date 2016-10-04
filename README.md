@@ -19,7 +19,7 @@ ENV Var | Description | Default
 `PORT`        | The port to start the HTTP server on. | `8989`
 
 ### End User
-The user should [create a personal access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use) with the `org:read` scope. The user should then use the following command to setup kubectl.
+The user should [create a personal access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use) with the `org:read` and `user:email` scopes. The user should then use the following command to setup kubectl.
 
 ```
 kubectl config set-credentials [github-username] --token=[access-token]

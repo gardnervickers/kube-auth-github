@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -11,23 +12,25 @@ import (
 )
 
 type TokenReviewSpec struct {
-	Token string `json:"token"`
+	Token *string `json:"token"`
 }
 
 type TokenReviewStatus struct {
-	Authenticated bool                  `json:"authenticated"`
-	User          TokenReviewStatusUser `json:"user"`
+	Authenticated *bool                  `json:"authenticated"`
+	User          *TokenReviewStatusUser `json:"user"`
 }
 
 type TokenReviewStatusUser struct {
-	Username string   `json:"user"`
-	Uid      string   `json:"uid"`
-	Groups   []string `json:"groups"`
+	Username *string   `json:"user"`
+	Uid      *string   `json:"uid"`
+	Groups   *[]string `json:"groups"`
 }
 
 type TokenReview struct {
-	Spec   TokenReviewSpec   `json:"spec"`
-	Status TokenReviewStatus `json:"status"`
+	ApiVersion string             `json:"apiVersion"`
+	Kind       string             `json:"kind"`
+	Spec       *TokenReviewSpec   `json:"spec"`
+	Status     *TokenReviewStatus `json:"status"`
 }
 
 func main() {
@@ -41,19 +44,43 @@ func Authenticate(c *gin.Context) {
 	c.BindJSON(&tokenReview)
 
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: tokenReview.Spec.Token},
+		&oauth2.Token{AccessToken: *tokenReview.Spec.Token},
 	)
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 
 	client := github.NewClient(tc)
 
-	teams, _, err := client.Organizations.ListUserTeams(&github.ListOptions{Page: 1, PerPage: 1000})
-
+	teams, res, err := client.Organizations.ListTeams(os.Getenv("GITHUB_ORG"), &github.ListOptions{Page: 1, PerPage: 1000})
 	if err != nil {
-		c.Status(500)
+		c.Status(res.StatusCode)
 	}
 
-	fmt.Println(teams)
+	*tokenReview.Status.Authenticated = false
+
+	var user *github.User
+	user, res, err = client.Users.Get("")
+	if err != nil {
+		c.Status(res.StatusCode)
+	}
+	*tokenReview.Status.User.Username = *user.Login
+	*tokenReview.Status.User.Uid = fmt.Sprintf("%d", user.ID)
+
+	for _, team := range teams {
+		isMember := false
+		isMember, res, err = client.Organizations.IsTeamMember(*team.ID, *tokenReview.Status.User.Username)
+		if err != nil {
+			c.Status(res.StatusCode)
+		}
+		if isMember {
+			*tokenReview.Status.User.Groups = append(*tokenReview.Status.User.Groups, *team.Name)
+			if *team.Name == os.Getenv("GITHUB_TEAM") {
+				tokenReview.Spec = nil
+				*tokenReview.Status.Authenticated = true
+			}
+		}
+	}
+
+	fmt.Println(json.Marshal(tokenReview))
 
 	c.Status(400)
 }
