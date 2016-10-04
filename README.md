@@ -18,6 +18,13 @@ ENV Var | Description | Default
 `GITHUB_TEAM` | The GitHub team that you wish to authenticate users against.
 `PORT`        | The port to start the HTTP server on. | `8989`
 
-### Contributing
+### End User
+The user should [create a personal access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use) with the `org:read` scope. The user should then use the following command to setup kubectl.
+
+```
+kubectl config set-credentials [github-username] --auth-provider=token --token=[access-token]
+```
+
+## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md) for details.
