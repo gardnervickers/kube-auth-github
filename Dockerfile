@@ -12,4 +12,6 @@ RUN rm `which go`
 ENV PORT 8989
 ENV GIN_MODE release
 
+EXPOSE $PORT
+
 CMD [ "kube-auth-github" ]
