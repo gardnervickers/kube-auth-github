@@ -33,9 +33,30 @@ type TokenReview struct {
 }
 
 func main() {
+	validateEnvironment()
 	r := gin.Default()
 	r.POST("/", Authenticate)
 	r.Run(fmt.Sprintf(":%s", os.Getenv("PORT")))
+}
+
+func validateEnvironment() {
+	port := os.Getenv("PORT")
+	org := os.Getenv("GITHUB_ORG")
+	team := os.Getenv("GITHUB_TEAM")
+
+	missingConfig := ""
+	if port == "" {
+		missingConfig = "PORT"
+	} else if org == "" {
+		missingConfig = "GITHUB_ORG"
+	} else if team == "" {
+		missingConfig = "GITHUB_TEAM"
+	}
+
+	if missingConfig != "" {
+		fmt.Printf("invalid environment: missing %v ", missingConfig)
+		os.Exit(1)
+	}
 }
 
 func Authenticate(c *gin.Context) {
