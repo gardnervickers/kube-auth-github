@@ -10,56 +10,27 @@ import (
 	"github.com/google/go-github/github"
 )
 
-type TokenReviewSpec struct {
-	Token string `json:"token"`
-}
-
-type TokenReviewStatus struct {
-	Authenticated bool                   `json:"authenticated"`
-	User          *TokenReviewStatusUser `json:"user"`
-}
-
-type TokenReviewStatusUser struct {
-	Username string   `json:"user"`
-	Uid      string   `json:"uid"`
-	Groups   []string `json:"groups"`
-}
-
-type TokenReview struct {
-	ApiVersion string             `json:"apiVersion"`
-	Kind       string             `json:"kind"`
-	Spec       *TokenReviewSpec   `json:"spec,omitempty"`
-	Status     *TokenReviewStatus `json:"status"`
-}
-
 func main() {
-	validateEnvironment()
+	validateEnvironment("PORT", "GITHUB_ORG", "GITHUB_TEAM")
 	r := gin.Default()
-	r.POST("/", Authenticate)
+	r.POST("/", authenticate)
 	r.Run(fmt.Sprintf(":%s", os.Getenv("PORT")))
 }
 
-func validateEnvironment() {
-	port := os.Getenv("PORT")
-	org := os.Getenv("GITHUB_ORG")
-	team := os.Getenv("GITHUB_TEAM")
-
-	missingConfig := ""
-	if port == "" {
-		missingConfig = "PORT"
-	} else if org == "" {
-		missingConfig = "GITHUB_ORG"
-	} else if team == "" {
-		missingConfig = "GITHUB_TEAM"
+func validateEnvironment(varNames ...string) {
+	valid := true
+	for _, varName := range varNames {
+		if os.Getenv(varName) == "" {
+			fmt.Fprintf(os.Stdout, "invalid environment: missing $%v\n", varName)
+			valid = false
+		}
 	}
-
-	if missingConfig != "" {
-		fmt.Printf("invalid environment: missing %v ", missingConfig)
+	if !valid {
 		os.Exit(1)
 	}
 }
 
-func Authenticate(c *gin.Context) {
+func authenticate(c *gin.Context) {
 	var tokenReview = TokenReview{}
 	c.BindJSON(&tokenReview)
 
